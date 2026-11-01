@@ -1,5 +1,8 @@
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
+use bevy_rand::plugin::EntropyPlugin;
+use bevy_rand::prelude::WyRand;
+use bevy_rapier3d::plugin::{NoUserData, RapierPhysicsPlugin};
 use trolls_gold::GameMainPlugin;
 
 fn main() -> AppExit {
@@ -11,6 +14,11 @@ fn main() -> AppExit {
         meta_check: AssetMetaCheck::Never,
         ..default()
     }));
+
+    app.add_plugins((
+        EntropyPlugin::<WyRand>::default(),
+        RapierPhysicsPlugin::<NoUserData>::default(),
+    ));
 
     app.add_plugins(GameMainPlugin);
 

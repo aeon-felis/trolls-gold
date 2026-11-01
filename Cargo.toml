@@ -17,6 +17,12 @@ opt-level = 3
 
 [dependencies]
 bevy = "0.20"
+bevy_rand = { version = "0.16.0", features = ["wyrand"] }
+bevy_rapier3d = "0.37.0"
+rand = "0.10.3"
+
+[target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
+bevy_rand = { version = "0.16", features = ["wasm_js"] }
 
 # These lints may be important signals about code quality, but normal Bevy code
 # commonly triggers them and the CI workflow treats them as errors, so we've
