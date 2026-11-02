@@ -1,8 +1,10 @@
 use bevy::asset::AssetMetaCheck;
 use bevy::prelude::*;
+use bevy_enhanced_input::EnhancedInputPlugin;
 use bevy_rand::plugin::EntropyPlugin;
 use bevy_rand::prelude::WyRand;
 use bevy_rapier3d::plugin::{NoUserData, RapierPhysicsPlugin};
+use bevy_tnua_rapier3d::TnuaRapier3dPlugin;
 use trolls_gold::GameMainPlugin;
 
 fn main() -> AppExit {
@@ -18,6 +20,8 @@ fn main() -> AppExit {
     app.add_plugins((
         EntropyPlugin::<WyRand>::default(),
         RapierPhysicsPlugin::<NoUserData>::default(),
+        EnhancedInputPlugin,
+        TnuaRapier3dPlugin::new(Update),
     ));
 
     app.add_plugins(GameMainPlugin);

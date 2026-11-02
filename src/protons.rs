@@ -5,13 +5,13 @@ use bevy_rand::prelude::*;
 use bevy_rapier3d::prelude::*;
 use rand::RngExt;
 
-use crate::AppState;
+use crate::{AppState, ClearableObject, PARTICLE_COLLISION_GROUP};
 
 pub struct ProtonsPlugin;
 
 impl Plugin for ProtonsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(AppState::InitScene), setup_protons);
+        app.add_systems(OnEnter(AppState::InitScene), spawn_protons);
         app.add_systems(
             FixedUpdate,
             apply_strong_nuclear_force.run_if(in_state(AppState::Game)),
@@ -24,7 +24,7 @@ const PROTON_RADIUS: f32 = 0.5;
 #[derive(Component, Default, Clone)]
 pub struct IsProton;
 
-fn setup_protons(
+fn spawn_protons(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut commands: Commands,
@@ -41,6 +41,7 @@ fn setup_protons(
         );
         commands.spawn_scene(bsn! {
             IsProton
+            ClearableObject
             Visibility
             Transform {
                 translation: position,
@@ -51,6 +52,9 @@ fn setup_protons(
             Collider::ball(PROTON_RADIUS)
             ExternalForce
             GravityScale(0.0)
+            CollisionGroups {
+                memberships: PARTICLE_COLLISION_GROUP,
+            }
         });
     }
 }

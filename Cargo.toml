@@ -17,8 +17,12 @@ opt-level = 3
 
 [dependencies]
 bevy = "0.20"
+bevy-tnua = "0.33.1"
+bevy-tnua-rapier3d = "0.19.1"
+bevy_enhanced_input = "0.27.2"
 bevy_rand = { version = "0.16.0", features = ["wyrand"] }
 bevy_rapier3d = "0.37.0"
+ordered-float = "5.5.1"
 rand = "0.10.3"
 
 [target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
