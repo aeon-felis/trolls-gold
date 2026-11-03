@@ -5,7 +5,11 @@ use bevy_rapier3d::prelude::*;
 use bevy_tnua::builtins::{TnuaBuiltinDashConfig, TnuaBuiltinWalkConfig};
 use bevy_tnua::{TnuaConfig, TnuaController};
 
-use crate::player_control::{ControlScheme, ControlSchemeConfig, player_controls_for_scene};
+use crate::player_control::{
+    ControlScheme, ControlSchemeActionDiscriminant, ControlSchemeConfig, player_controls_for_scene,
+};
+use crate::protons::{IsProton, ShakeStrongNuclearForce};
+use crate::utils::collision_started_events_both_ways;
 use crate::{AppState, ClearableObject, PLAYER_COLLISION_GROUP};
 
 pub struct PlayerPlugin;
@@ -13,6 +17,7 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(AppState::InitScene), spawn_player);
+        app.add_systems(Update, handle_player_collisions);
     }
 }
 
@@ -35,6 +40,7 @@ fn spawn_player(mut commands: Commands) {
         CollisionGroups {
             memberships: PLAYER_COLLISION_GROUP,
         }
+        ActiveEvents::COLLISION_EVENTS
         Actions<IsPlayer> [{player_controls_for_scene()}]
         TnuaController<ControlScheme>
         TnuaConfig<ControlScheme>(asset_value(ControlSchemeConfig {
@@ -67,4 +73,24 @@ fn spawn_player(mut commands: Commands) {
             },
         }))
     });
+}
+
+fn handle_player_collisions(
+    mut collision_events: MessageReader<CollisionEvent>,
+    players_query: Query<&TnuaController<ControlScheme>, With<IsPlayer>>,
+    protons_query: Query<(), With<IsProton>>, // TODO: verify it's part of the nuclei
+    mut commands: Commands,
+) {
+    for (e1, e2) in collision_started_events_both_ways(&mut collision_events) {
+        let Ok(controller) = players_query.get(e1) else {
+            continue;
+        };
+        if controller.action_discriminant() != Some(ControlSchemeActionDiscriminant::Dash) {
+            continue;
+        }
+        if !protons_query.contains(e2) {
+            continue;
+        }
+        commands.trigger(ShakeStrongNuclearForce);
+    }
 }

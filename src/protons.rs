@@ -11,11 +11,13 @@ pub struct ProtonsPlugin;
 
 impl Plugin for ProtonsPlugin {
     fn build(&self, app: &mut App) {
+        app.insert_resource(StrongNuclearForce::Active);
         app.add_systems(OnEnter(AppState::InitScene), spawn_protons);
         app.add_systems(
             FixedUpdate,
             apply_strong_nuclear_force.run_if(in_state(AppState::Game)),
         );
+        app.add_observer(shake_strong_nuclear_force);
     }
 }
 
@@ -23,6 +25,15 @@ const PROTON_RADIUS: f32 = 0.5;
 
 #[derive(Component, Default, Clone)]
 pub struct IsProton;
+
+#[derive(Resource)]
+enum StrongNuclearForce {
+    Active,
+    Shaken(Timer),
+}
+
+#[derive(Event)]
+pub struct ShakeStrongNuclearForce;
 
 fn spawn_protons(
     mut meshes: ResMut<Assets<Mesh>>,
@@ -51,6 +62,7 @@ fn spawn_protons(
             RigidBody::Dynamic
             Collider::ball(PROTON_RADIUS)
             ExternalForce
+            Velocity
             GravityScale(0.0)
             CollisionGroups {
                 memberships: PARTICLE_COLLISION_GROUP,
@@ -59,12 +71,45 @@ fn spawn_protons(
     }
 }
 
+fn shake_strong_nuclear_force(_: On<ShakeStrongNuclearForce>, 
+    mut strong_nuclear_force: ResMut<StrongNuclearForce>,
+) {
+    *strong_nuclear_force = StrongNuclearForce::Shaken(Timer::from_seconds(5.0, TimerMode::Once));
+}
+
 fn apply_strong_nuclear_force(
+    time: Res<Time>,
+    mut strong_nuclear_force: ResMut<StrongNuclearForce>,
     mut protons_query: Query<(Entity, &GlobalTransform, &mut ExternalForce), With<IsProton>>,
     other_protons_query: Query<(Entity, &GlobalTransform), With<IsProton>>,
+    mut protons_velocities: Query<&mut Velocity, With<IsProton>>,
 ) {
+    let is_shaken = if let StrongNuclearForce::Shaken(timer) = strong_nuclear_force.as_mut() {
+        if timer.tick(time.delta()).is_finished() {
+            *strong_nuclear_force = StrongNuclearForce::Active;
+            false
+        } else {
+            true
+        }
+    } else {
+        false
+    };
+
+    if is_shaken {
+        protons_velocities.par_iter_mut().for_each(|mut velocity| {
+            velocity.linear = velocity.linear.clamp_length_max(4.0);
+        });
+        return;
+    }
+
     // TODO: exclude from the center protons separate from the others
-    let center_direction = Dir3::new(other_protons_query.iter().map(|(_, transform)| transform.translation()).sum::<Vec3>()).ok();
+    let center_direction = Dir3::new(
+        other_protons_query
+            .iter()
+            .map(|(_, transform)| transform.translation())
+            .sum::<Vec3>(),
+    )
+    .ok();
     protons_query
         .par_iter_mut()
         .for_each(|(entity, transform, mut force)| {
