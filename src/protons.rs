@@ -63,6 +63,8 @@ fn apply_strong_nuclear_force(
     mut protons_query: Query<(Entity, &GlobalTransform, &mut ExternalForce), With<IsProton>>,
     other_protons_query: Query<(Entity, &GlobalTransform), With<IsProton>>,
 ) {
+    // TODO: exclude from the center protons separate from the others
+    let center_direction = Dir3::new(other_protons_query.iter().map(|(_, transform)| transform.translation()).sum::<Vec3>()).ok();
     protons_query
         .par_iter_mut()
         .for_each(|(entity, transform, mut force)| {
@@ -80,5 +82,8 @@ fn apply_strong_nuclear_force(
                     Some(dir * strength)
                 })
                 .sum::<Vec3>();
+            if let Some(center_direction) = center_direction {
+                force.force -= *center_direction;
+            }
         })
 }
