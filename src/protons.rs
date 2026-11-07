@@ -209,10 +209,11 @@ fn update_protons_clustering(
 
 fn unshake_protons(
     time: Res<Time>,
-    mut query: Query<(Entity, &mut ProtonShaken)>,
+    mut query: Query<(Entity, &mut ProtonShaken, &mut ExternalForce)>,
     mut commands: Commands,
 ) {
-    for (proton, mut shaken) in query.iter_mut() {
+    for (proton, mut shaken, mut external_force) in query.iter_mut() {
+        external_force.force = Vec3::ZERO;
         if shaken.0.tick(time.delta()).is_finished() {
             commands.entity(proton).remove::<ProtonShaken>();
         }
