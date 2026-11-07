@@ -2,7 +2,7 @@ use bevy::color::palettes::css;
 use bevy::prelude::*;
 use bevy_enhanced_input::action::relationship::Actions;
 use bevy_rapier3d::prelude::*;
-use bevy_tnua::builtins::{TnuaBuiltinDashConfig, TnuaBuiltinWalkConfig};
+use bevy_tnua::builtins::TnuaBuiltinWalkConfig;
 use bevy_tnua::{TnuaConfig, TnuaController};
 
 use crate::player_control::{ControlScheme, ControlSchemeConfig, player_controls_for_scene};
@@ -54,16 +54,6 @@ fn spawn_player(mut commands: Commands) {
                 // tilt_offset_angacl: todo!(),
                 // turning_angvel: todo!(),
                 // max_slope: todo!()
-                ..Default::default()
-            },
-            dash: TnuaBuiltinDashConfig {
-                speed: 50.0,
-                horizontal_distance: 5.0,
-                // vertical_distance: todo!(),
-                // brake_to_speed: todo!(),
-                // acceleration: todo!(),
-                // brake_acceleration: todo!(),
-                // input_buffer_time: todo!()
                 ..Default::default()
             },
         }))
