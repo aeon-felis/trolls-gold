@@ -16,11 +16,11 @@ impl Plugin for ProtonsPlugin {
         app.add_systems(
             FixedUpdate,
             (
-                apply_strong_nuclear_force.run_if(in_state(AppState::Game)),
+                (apply_strong_nuclear_force, apply_proton_grabbing)
+                    .run_if(in_state(AppState::Game)),
                 update_protons_clustering.run_if(does_protons_clustering_need_update),
             ),
         );
-        app.add_systems(Update, unshake_protons.run_if(in_state(AppState::Game)));
     }
 }
 
@@ -30,7 +30,7 @@ const PROTON_RADIUS: f32 = 0.5;
 pub struct IsProton;
 
 #[derive(Component)]
-pub struct ProtonShaken(pub Timer);
+pub struct GrabbingProton(pub Entity);
 
 #[derive(Component, Default, Clone, Debug)]
 pub struct NucleusAffinity {
@@ -68,6 +68,7 @@ fn spawn_protons(
             RigidBody::Dynamic
             Collider::ball(PROTON_RADIUS)
             ExternalForce
+            ExternalImpulse
             GravityScale(0.0)
             CollisionGroups {
                 memberships: PARTICLE_COLLISION_GROUP,
@@ -85,12 +86,9 @@ fn apply_strong_nuclear_force(
             &NucleusAffinity,
             &mut ExternalForce,
         ),
-        (With<IsProton>, Without<ProtonShaken>),
+        With<IsProton>,
     >,
-    other_protons_query: Query<
-        (Entity, &GlobalTransform, &NucleusAffinity),
-        (With<IsProton>, Without<ProtonShaken>),
-    >,
+    other_protons_query: Query<(Entity, &GlobalTransform, &NucleusAffinity), With<IsProton>>,
 ) {
     let num_clusters = other_protons_query
         .iter()
@@ -132,6 +130,29 @@ fn apply_strong_nuclear_force(
                 force.force -= *center_direction;
             }
         })
+}
+
+fn apply_proton_grabbing(
+    mut grabber_query: Query<
+        (&GrabbingProton, &GlobalTransform, &mut ExternalImpulse),
+        Without<IsProton>,
+    >,
+    mut protons_query: Query<(&GlobalTransform, &mut ExternalImpulse), With<IsProton>>,
+) {
+    for (GrabbingProton(grabbed_proton), grabber_transform, mut grabber_impulse) in
+        grabber_query.iter_mut()
+    {
+        let Ok((proton_transform, mut proton_impulse)) = protons_query.get_mut(*grabbed_proton)
+        else {
+            continue;
+        };
+
+        let vec_to_proton = proton_transform.translation() - grabber_transform.translation();
+        let impulse_vec = vec_to_proton;
+
+        grabber_impulse.impulse = impulse_vec;
+        proton_impulse.impulse = -impulse_vec;
+    }
 }
 
 fn does_protons_clustering_need_update(
@@ -204,18 +225,5 @@ fn update_protons_clustering(
             cluster_size: cluster_sizes[cluster_index],
             num_neighbors,
         };
-    }
-}
-
-fn unshake_protons(
-    time: Res<Time>,
-    mut query: Query<(Entity, &mut ProtonShaken, &mut ExternalForce)>,
-    mut commands: Commands,
-) {
-    for (proton, mut shaken, mut external_force) in query.iter_mut() {
-        external_force.force = Vec3::ZERO;
-        if shaken.0.tick(time.delta()).is_finished() {
-            commands.entity(proton).remove::<ProtonShaken>();
-        }
     }
 }
