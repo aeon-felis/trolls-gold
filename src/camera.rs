@@ -1,13 +1,10 @@
 use bevy::prelude::*;
 
-use crate::player::IsPlayer;
-
 pub struct GameCamrePlugin;
 
 impl Plugin for GameCamrePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_camera);
-        app.add_systems(Update, position_camera);
     }
 }
 
