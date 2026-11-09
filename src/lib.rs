@@ -1,5 +1,6 @@
 mod arena;
 mod camera;
+mod electrons;
 mod player;
 mod player_control;
 mod protons;
@@ -10,6 +11,7 @@ use bevy_rapier3d::geometry::Group;
 
 use self::arena::ArenaPlugin;
 use self::camera::GameCamrePlugin;
+use self::electrons::ElectronsPlugin;
 use self::player::PlayerPlugin;
 use self::player_control::PlayerControlPlugin;
 use self::protons::ProtonsPlugin;
@@ -27,6 +29,7 @@ impl Plugin for GameMainPlugin {
         app.add_plugins(PlayerPlugin);
         app.add_plugins(PlayerControlPlugin);
         app.add_plugins(ProtonsPlugin);
+        app.add_plugins(ElectronsPlugin);
     }
 }
 
