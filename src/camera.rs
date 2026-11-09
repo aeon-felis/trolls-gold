@@ -9,7 +9,7 @@ impl Plugin for GameCamrePlugin {
 }
 
 fn setup_camera(mut commands: Commands) {
-    commands.spawn_scene_list(bsn_list!{
+    commands.spawn_scene_list(bsn_list! {
         Camera3d
         Transform::from_xyz(0.0, 20.0, 80.0).looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y)
         --

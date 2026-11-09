@@ -40,7 +40,7 @@ fn spawn_player(mut commands: Commands) {
         TnuaController<ControlScheme>
         TnuaConfig<ControlScheme>(asset_value(ControlSchemeConfig {
             basis: TnuaBuiltinWalkConfig {
-                speed: 10.0,
+                speed: 20.0,
                 float_height: PLAYER_HEIGHT,
                 // headroom: todo!(),
                 // cling_distance: todo!(),

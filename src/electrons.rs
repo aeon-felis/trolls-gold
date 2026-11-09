@@ -16,7 +16,7 @@ impl Plugin for ElectronsPlugin {
     }
 }
 
-const ELECTRON_RADIUS: f32 = 0.1;
+const ELECTRON_RADIUS: f32 = 0.3;
 
 #[derive(Component, Default, Clone)]
 pub struct IsElectron {
